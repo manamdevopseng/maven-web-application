@@ -1,0 +1,32 @@
+node{
+echo"pipeline script started"
+def mavenhome= tool name:"maven-3.8.6"
+
+//checkoutstage
+
+stage ('codefrom github'){
+git credentialsId: 'cfd0e868-b395-4455-bf5f-6eff2051bdb9', url: 'https://github.com/manamdevopseng/maven-web-application.git'
+}
+//buildstage
+
+stage ('buildthe package'){
+sh "$mavenhome/bin/mvn clean package"
+}
+
+//sonarqube Report
+stage ('genarate sonarqube report'){
+sh "$mavenhome/bin/mvn sonar:sonar"
+}
+
+//upload artifacte to nexus
+stage ('nexus artifcatory'){
+sh "$mavenhome/bin/mvn deploy"
+}
+//deploy to tomact
+stage ('deploy into tomacat'){
+sshagent(['6f5b06aa-f42b-44fb-add8-39410af51151']) {
+  sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.126.227.233:/opt/apache-tomcat-9.0.69/webapps"
+}
+}
+echo"pipeline script started"
+}//node closing
